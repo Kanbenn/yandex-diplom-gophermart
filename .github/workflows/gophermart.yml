@@ -12,7 +12,7 @@ jobs:
 
   build:
     runs-on: ubuntu-latest
-    container: golang:1.19
+    container: golang:1.21
 
     services:
       postgres:
@@ -30,34 +30,65 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Download autotests binaries
-        uses: robinraju/release-downloader@v1.2
-        with:
-          repository: Yandex-Practicum/go-autotests-bin
-          latest: true
-          fileName: "*"
-          out-file-path: .tools
-
       - name: Setup autotest binary
         run: |
-          chmod -R +x $GITHUB_WORKSPACE/.tools
-          mv $GITHUB_WORKSPACE/.tools/gophermarttest /usr/local/bin/gophermarttest
-          mv $GITHUB_WORKSPACE/.tools/random /usr/local/bin/random
+          chmod +x $GITHUB_WORKSPACE/.github/gmtest_patched_linux
+          mv $GITHUB_WORKSPACE/.github/gmtest_patched_linux /usr/local/bin/gmtest_patched_linux
 
       - name: Prepare binaries
         run: |
           (cd cmd/gophermart && go build -buildvcs=false -o gophermart)
           (cd cmd/accrual && chmod +x accrual_linux_amd64)
 
-      - name: Test
-        run: |
-          gophermarttest \
-            -test.v -test.run=^TestGophermart$ \
-            -gophermart-binary-path=cmd/gophermart/gophermart \
-            -gophermart-host=localhost \
-            -gophermart-port=8080 \
-            -gophermart-database-uri="postgresql://postgres:postgres@postgres/praktikum?sslmode=disable" \
-            -accrual-binary-path=cmd/accrual/accrual_linux_amd64 \
-            -accrual-host=localhost \
-            -accrual-port=$(random unused-port) \
-            -accrual-database-uri="postgresql://postgres:postgres@postgres/praktikum?sslmode=disable"
+      - name: "Code increment #1"
+      if: |
+          github.head_ref == 'iter1' 
+      run: |
+        gmtest_patched_linux \
+          -test.v -test.run=^TestIter1$ \
+          -gophermart-binary-path=cmd/gophermart/gophermart \
+          -gophermart-host=localhost \
+          -gophermart-port=8080 \
+          -gophermart-database-uri="postgresql://postgres:postgres@postgres/praktikum?sslmode=disable"
+
+      - name: "Code increment #2"
+      if: |
+          github.head_ref == 'iter2'
+      run: |
+        gmtest_patched_linux \
+          -test.v -test.run=^TestIter2$ \
+          -gophermart-binary-path=cmd/gophermart/gophermart \
+          -gophermart-host=localhost \
+          -gophermart-port=8080 \
+          -gophermart-database-uri="postgresql://postgres:postgres@postgres/praktikum?sslmode=disable"
+
+      - name: FullTest
+      if: |
+        github.ref == 'refs/heads/main'   ||
+        github.ref == 'refs/heads/master' ||
+        github.head_ref == 'iter3'
+      run: |
+        gmtest_patched_linux \
+          -test.v -test.run=^TestGophermart$ \
+          -gophermart-binary-path=cmd/gophermart/gophermart \
+          -gophermart-host=localhost \
+          -gophermart-port=8080 \
+          -gophermart-database-uri="postgresql://postgres:postgres@postgres/praktikum?sslmode=disable" \
+          -accrual-binary-path=cmd/accrual/accrual_linux_amd64 \
+          -accrual-host=localhost \
+          -accrual-port=9090 \
+          -accrual-database-uri="postgresql://postgres:postgres@postgres/praktikum?sslmode=disable"
+
+
+      # - name: Test
+      #   run: |
+      #     gmtest_patched_linux \
+      #       -test.v -test.run=^TestGophermart$ \
+      #       -gophermart-binary-path=cmd/gophermart/gophermart \
+      #       -gophermart-host=localhost \
+      #       -gophermart-port=8080 \
+      #       -gophermart-database-uri="postgresql://postgres:postgres@postgres/praktikum?sslmode=disable" \
+      #       -accrual-binary-path=cmd/accrual/accrual_linux_amd64 \
+      #       -accrual-host=localhost \
+      #       -accrual-port=$(random unused-port) \
+      #       -accrual-database-uri="postgresql://postgres:postgres@postgres/praktikum?sslmode=disable"
