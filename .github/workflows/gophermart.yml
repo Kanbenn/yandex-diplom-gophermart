@@ -41,54 +41,41 @@ jobs:
           (cd cmd/accrual && chmod +x accrual_linux_amd64)
 
       - name: "Code increment #1"
-      if: |
-          github.head_ref == 'iter1' 
-      run: |
-        gmtest_patched_linux \
-          -test.v -test.run=^TestIter1$ \
-          -gophermart-binary-path=cmd/gophermart/gophermart \
-          -gophermart-host=localhost \
-          -gophermart-port=8080 \
-          -gophermart-database-uri="postgresql://postgres:postgres@postgres/praktikum?sslmode=disable"
+        if: |
+            github.head_ref == 'iter1' ||
+            github.head_ref == 'iter2'
+        run: |
+          gmtest_patched_linux \
+            -test.v -test.run=^TestIter1$ \
+            -gophermart-binary-path=cmd/gophermart/gophermart \
+            -gophermart-host=localhost \
+            -gophermart-port=8080 \
+            -gophermart-database-uri="postgresql://postgres:postgres@postgres/praktikum?sslmode=disable"
 
       - name: "Code increment #2"
-      if: |
-          github.head_ref == 'iter2'
-      run: |
-        gmtest_patched_linux \
-          -test.v -test.run=^TestIter2$ \
-          -gophermart-binary-path=cmd/gophermart/gophermart \
-          -gophermart-host=localhost \
-          -gophermart-port=8080 \
-          -gophermart-database-uri="postgresql://postgres:postgres@postgres/praktikum?sslmode=disable"
+        if: |
+            github.head_ref == 'iter2'
+        run: |
+          gmtest_patched_linux \
+            -test.v -test.run=^TestIter2$ \
+            -gophermart-binary-path=cmd/gophermart/gophermart \
+            -gophermart-host=localhost \
+            -gophermart-port=8080 \
+            -gophermart-database-uri="postgresql://postgres:postgres@postgres/praktikum?sslmode=disable"
 
       - name: FullTest
-      if: |
-        github.ref == 'refs/heads/main'   ||
-        github.ref == 'refs/heads/master' ||
-        github.head_ref == 'iter3'
-      run: |
-        gmtest_patched_linux \
-          -test.v -test.run=^TestGophermart$ \
-          -gophermart-binary-path=cmd/gophermart/gophermart \
-          -gophermart-host=localhost \
-          -gophermart-port=8080 \
-          -gophermart-database-uri="postgresql://postgres:postgres@postgres/praktikum?sslmode=disable" \
-          -accrual-binary-path=cmd/accrual/accrual_linux_amd64 \
-          -accrual-host=localhost \
-          -accrual-port=9090 \
-          -accrual-database-uri="postgresql://postgres:postgres@postgres/praktikum?sslmode=disable"
-
-
-      # - name: Test
-      #   run: |
-      #     gmtest_patched_linux \
-      #       -test.v -test.run=^TestGophermart$ \
-      #       -gophermart-binary-path=cmd/gophermart/gophermart \
-      #       -gophermart-host=localhost \
-      #       -gophermart-port=8080 \
-      #       -gophermart-database-uri="postgresql://postgres:postgres@postgres/praktikum?sslmode=disable" \
-      #       -accrual-binary-path=cmd/accrual/accrual_linux_amd64 \
-      #       -accrual-host=localhost \
-      #       -accrual-port=$(random unused-port) \
-      #       -accrual-database-uri="postgresql://postgres:postgres@postgres/praktikum?sslmode=disable"
+        if: |
+          github.ref == 'refs/heads/main'   ||
+          github.ref == 'refs/heads/master' ||
+          github.head_ref == 'iter3'
+        run: |
+          gmtest_patched_linux \
+            -test.v -test.run=^TestGophermart$ \
+            -gophermart-binary-path=cmd/gophermart/gophermart \
+            -gophermart-host=localhost \
+            -gophermart-port=8080 \
+            -gophermart-database-uri="postgresql://postgres:postgres@postgres/praktikum?sslmode=disable" \
+            -accrual-binary-path=cmd/accrual/accrual_linux_amd64 \
+            -accrual-host=localhost \
+            -accrual-port=9090 \
+            -accrual-database-uri="postgresql://postgres:postgres@postgres/praktikum?sslmode=disable"

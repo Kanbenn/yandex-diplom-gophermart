@@ -48,13 +48,13 @@ func (h *Handler) AuthUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	u := h.db.GetUser(in.Login)
-	if u.Id == 0 || u.Password != in.Password {
+	if u.ID == 0 || u.Password != in.Password {
 		log.Println("Handler.AuthUser error: wrong login or password for", in)
 		http.Error(w, "wrong login or password", http.StatusUnauthorized)
 		return
 	}
 
-	if err := writeAuthCookie(w, u.Id); err != nil {
+	if err := writeAuthCookie(w, u.ID); err != nil {
 		log.Println("Handler.AuthUser error at building jwt-cookie:", u, err)
 		http.Error(w, "server error", http.StatusInternalServerError)
 		return
