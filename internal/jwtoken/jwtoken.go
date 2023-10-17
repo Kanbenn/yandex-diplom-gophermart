@@ -8,7 +8,7 @@ import (
 
 type Claims struct {
 	jwt.RegisteredClaims
-	Uid int
+	UID int
 }
 
 const tokenExp = 7 * 24 * time.Hour
@@ -22,7 +22,7 @@ func ParseToken(tokenString string) (uid int, err error) {
 	if err != nil || !token.Valid {
 		return 0, err
 	}
-	return claims.Uid, nil
+	return claims.UID, nil
 }
 
 func MakeToken(uid int) (token string, err error) {
@@ -30,7 +30,7 @@ func MakeToken(uid int) (token string, err error) {
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(tokenExp)),
 		},
-		Uid: uid,
+		UID: uid,
 	})
 
 	tokenString, err := jt.SignedString([]byte(secretKey))
