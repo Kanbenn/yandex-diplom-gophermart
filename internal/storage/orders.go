@@ -13,9 +13,9 @@ func (pg *Pg) InsertOrder(o models.OrderInsert) error {
 	ON CONFLICT (number) DO UPDATE SET updated_at = NOW()
 	RETURNING user_id, (updated_at > created_at) AS conflict`
 
-	o.Uploaded_at = time.Now().Format(time.RFC3339)
+	o.UploadedAt = time.Now().Format(time.RFC3339)
 	res := models.OrderInsertResult{}
-	row := pg.Sqlx.QueryRowx(q, o.Number, o.UID, o.Uploaded_at)
+	row := pg.Sqlx.QueryRowx(q, o.Number, o.UID, o.UploadedAt)
 	res.Err = row.Scan(&res.UID, &res.IsConflict)
 	return checkResults(res, o)
 }

@@ -7,9 +7,9 @@ type User struct {
 }
 
 type OrderInsert struct {
-	Number      string
-	UID         int
-	Uploaded_at string
+	Number     string
+	UID        int
+	UploadedAt string
 }
 type OrderInsertResult struct {
 	UID        int
