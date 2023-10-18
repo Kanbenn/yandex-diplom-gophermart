@@ -18,7 +18,7 @@ func main() {
 	defer pg.Close()
 
 	h := handler.New(cfg, pg)
-	r := router.New(h, pg)
+	r := router.New(h)
 
 	log.Println("starting web-server on address:", cfg.Addr)
 	err := http.ListenAndServe(cfg.Addr, r)

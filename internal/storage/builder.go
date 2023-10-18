@@ -1,0 +1,57 @@
+package storage
+
+import (
+	"log"
+
+	"github.com/jmoiron/sqlx" // needs a pg driver like github.com/lib/pq
+
+	"github.com/Kanbenn/gophermart/internal/config"
+)
+
+const (
+	createTables = `
+	DROP TABLE IF EXISTS users, orders;
+
+	CREATE TABLE IF NOT EXISTS users (
+		id 		   SERIAL PRIMARY KEY,
+		login      TEXT NOT NULL UNIQUE,
+		password   TEXT NOT NULL,
+		updated_at TIMESTAMP without time zone DEFAULT NOW()
+	);
+	CREATE INDEX IF NOT EXISTS ulogin ON users(login);
+	
+	CREATE TABLE IF NOT EXISTS orders (
+		id 		    SERIAL PRIMARY KEY,
+		number      TEXT NOT NULL UNIQUE,
+		user_id     INTEGER,
+		status      TEXT DEFAULT 'NEW',
+		accrual		INTEGER,
+		uploaded_at TEXT,
+		created_at  TIMESTAMP without time zone DEFAULT NOW(),
+		updated_at  TIMESTAMP without time zone DEFAULT NOW()
+	);
+	CREATE INDEX IF NOT EXISTS onumber ON orders(number);`
+)
+
+type Pg struct {
+	Sqlx *sqlx.DB
+	Cfg  config.Config
+}
+
+func NewPostgres(cfg config.Config) *Pg {
+	x, err := sqlx.Open("postgres", cfg.PgConnStr)
+	if err != nil {
+		log.Fatal("error at connecting to Postgres:", cfg.PgConnStr, err)
+	}
+	if err := x.Ping(); err != nil {
+		log.Fatal("error at pinging the Postgres db:", cfg.PgConnStr, err)
+	}
+	if _, err := x.Exec(createTables); err != nil {
+		log.Fatal("error at creating db-tables:", cfg.PgConnStr, err)
+	}
+	return &Pg{x, cfg}
+}
+
+func (pg *Pg) Close() error {
+	return pg.Sqlx.Close()
+}

@@ -5,10 +5,9 @@ import (
 	chimw "github.com/go-chi/chi/v5/middleware"
 
 	"github.com/Kanbenn/gophermart/internal/handler"
-	"github.com/Kanbenn/gophermart/internal/storage"
 )
 
-func New(h *handler.Handler, s *storage.Pg) *chi.Mux {
+func New(h *handler.Handler) *chi.Mux {
 	r := chi.NewRouter()
 
 	r.Use(chimw.Logger)
@@ -16,10 +15,19 @@ func New(h *handler.Handler, s *storage.Pg) *chi.Mux {
 
 	r.Mount("/debug", chimw.Profiler())
 
-	r.Route("/api/user", func(r chi.Router) {
+	r.Group(func(r chi.Router) {
 		r.Use(RequireJsnMiddleware)
-		r.Post("/register", h.RegisterUser)
-		r.Post("/login", h.AuthUser)
+		r.Post("/api/user/register", h.RegisterUser)
+		r.Post("/api/user/login", h.AuthUser)
+	})
+
+	r.Group(func(r chi.Router) {
+		r.Use(RequireAuthMiddleware)
+		r.Post("/api/user/orders", h.PostOrder)
+		r.Get("/api/user/orders", h.GetOrders)
+		// 	r.Get("/balance", h.GetBalance)
+		// 	r.Post("/balance/withdraw", h.PostWithdraw)
+		// 	r.Get("/withdrawals", h.GetWithdrawals)
 	})
 
 	// POST /api/user/orders — загрузка пользователем номера заказа для расчёта;
