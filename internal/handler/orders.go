@@ -16,7 +16,7 @@ func (h *Handler) PostOrder(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "неверный формат запроса;", http.StatusBadRequest)
 		return
 	}
-	if valid := luhn.IsValidLuhnNumber(number); !valid {
+	if !luhn.IsValidLuhnNumber(number) {
 		http.Error(w, "неверный формат номера заказа;", http.StatusUnprocessableEntity)
 		return
 	}

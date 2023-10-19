@@ -39,17 +39,17 @@ type Pg struct {
 }
 
 func NewPostgres(cfg config.Config) *Pg {
-	x, err := sqlx.Open("postgres", cfg.PgConnStr)
+	conn, err := sqlx.Open("postgres", cfg.PgConnStr)
 	if err != nil {
 		log.Fatal("error at connecting to Postgres:", cfg.PgConnStr, err)
 	}
-	if err := x.Ping(); err != nil {
+	if err := conn.Ping(); err != nil {
 		log.Fatal("error at pinging the Postgres db:", cfg.PgConnStr, err)
 	}
-	if _, err := x.Exec(createTables); err != nil {
+	if _, err := conn.Exec(createTables); err != nil {
 		log.Fatal("error at creating db-tables:", cfg.PgConnStr, err)
 	}
-	return &Pg{x, cfg}
+	return &Pg{conn, cfg}
 }
 
 func (pg *Pg) Close() error {

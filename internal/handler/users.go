@@ -13,7 +13,7 @@ import (
 
 func (h *Handler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 
-	var u models.User
+	var u models.UserInsert
 	if err := json.NewDecoder(r.Body).Decode(&u); err != nil {
 		http.Error(w, "unreadable json data", http.StatusBadRequest)
 		return
@@ -41,7 +41,7 @@ func (h *Handler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) AuthUser(w http.ResponseWriter, r *http.Request) {
 
-	var in models.User
+	var in models.UserInsert
 	if err := json.NewDecoder(r.Body).Decode(&in); err != nil {
 		http.Error(w, "unreadable json data", http.StatusBadRequest)
 		return
