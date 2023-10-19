@@ -23,6 +23,7 @@ const (
 	CREATE TABLE IF NOT EXISTS orders (
 		id 		    SERIAL PRIMARY KEY,
 		number      TEXT NOT NULL UNIQUE,
+		-- user_id     INTEGER REFERENCES users(id),
 		user_id     INTEGER,
 		status      TEXT DEFAULT 'NEW',
 		accrual		INTEGER,

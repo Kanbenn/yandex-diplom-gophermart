@@ -39,6 +39,8 @@ func statusFromInsertResult(e error) int {
 		return http.StatusOK
 	case storage.ErrOrderWasPostedByAnotherUser:
 		return http.StatusConflict
+	case storage.ErrUserUnknown:
+		return http.StatusUnauthorized
 	default:
 		// storage.ErrUnxpectedError
 		return http.StatusInternalServerError
