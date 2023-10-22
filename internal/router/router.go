@@ -18,23 +18,20 @@ func New(h *handler.Handler) *chi.Mux {
 	r.Group(func(r chi.Router) {
 		r.Use(RequireJsnMiddleware)
 		r.Post("/api/user/register", h.RegisterUser)
-		r.Post("/api/user/login", h.AuthUser)
-	})
+		r.Post("/api/user/login", h.LoginUser)
 
+	})
 	r.Group(func(r chi.Router) {
 		r.Use(RequireAuthMiddleware)
-		r.Post("/api/user/orders", h.PostOrder)
-		r.Get("/api/user/orders", h.GetOrders)
-		// 	r.Get("/balance", h.GetBalance)
-		// 	r.Post("/balance/withdraw", h.PostWithdraw)
-		// 	r.Get("/withdrawals", h.GetWithdrawals)
+		r.Post("/api/user/orders", h.PostNewOrder)
+		r.Get("/api/user/orders", h.GetUserOrders)
+		r.Get("/api/user/balance", h.GetUserBalance)
+		r.Get("/api/user/withdrawals", h.GetUserHistory)
 	})
-
-	// POST /api/user/orders — загрузка пользователем номера заказа для расчёта;
-	// GET /api/user/orders — получение списка загруженных пользователем номеров заказов, статусов их обработки и информации о начислениях;
-	// GET /api/user/balance — получение текущего баланса счёта баллов лояльности пользователя;
-	// POST /api/user/balance/withdraw — запрос на списание баллов с накопительного счёта в счёт оплаты нового заказа;
-	// GET /api/user/withdrawals
-
+	r.Group(func(r chi.Router) {
+		r.Use(RequireAuthMiddleware)
+		r.Use(RequireJsnMiddleware)
+		r.Post("/api/user/balance/withdraw", h.PostNewBonusOrder)
+	})
 	return r
 }

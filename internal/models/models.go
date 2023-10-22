@@ -1,23 +1,40 @@
 package models
 
 type UserInsert struct {
-	ID       int    `json:"-"` // hide from json
+	ID       int    `json:"-"` // hide from json.Marshal
 	Login    string `json:"login"`
 	Password string `json:"password"`
 }
 
-type OrderInsert struct {
-	Number     string
-	UID        int
-	UploadedAt string
+type UserBalance struct {
+	ID        int     `json:"-"`
+	Balance   float32 `json:"current"`
+	Withdrawn float32 `json:"withdrawn"`
 }
+
+type OrderNew struct {
+	Number string  `json:"order"`
+	User   int     `json:"-"`
+	Sum    float32 `json:"sum" `
+	Time   string  `json:"processed_at"`
+}
+
 type OrderInsertResult struct {
-	UID         int
+	User        int
 	WasConflict bool
 	Err         error
 }
 
-// had to make the static-check happy >_<
-type CtxKey string
+type OrderResponse struct {
+	Number string  `json:"number"`
+	Status string  `json:"status"`
+	Bonus  float32 `json:"accrual,omitempty"`
+	Time   string  `json:"uploaded_at"`
+}
 
-const CtxKeyUser CtxKey = "uid"
+type AccrualResponse struct {
+	User   int     `json:"-" db:"user_id"`
+	Number string  `json:"order"`
+	Status string  `json:"status"`
+	Bonus  float32 `json:"accrual"`
+}

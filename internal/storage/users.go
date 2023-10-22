@@ -14,8 +14,28 @@ func (pg *Pg) InsertUser(user models.UserInsert) (uid int, err error) {
 	return uid, err
 }
 
-func (pg *Pg) GetUser(login string) (user models.UserInsert) {
+func (pg *Pg) SelectUser(login string) (user models.UserInsert) {
 	q := `SELECT id, login, password FROM users WHERE login = $1`
 	_ = pg.Sqlx.Get(&user, q, login)
 	return user
+}
+
+func (pg *Pg) SelectUserOrders(uid int) (orders []models.OrderResponse, err error) {
+	q := `
+	SELECT number,status,bonus,time FROM orders
+	WHERE user_id = $1 ORDER BY created_at`
+	err = pg.Sqlx.Select(&orders, q, uid)
+	return orders, err
+}
+
+func (pg *Pg) SelectUserBalance(uid int) (ub models.UserBalance, err error) {
+	q := `SELECT id, balance, withdrawn FROM users WHERE id = $1`
+	err = pg.Sqlx.Get(&ub, q, uid)
+	return ub, err
+}
+
+func (pg *Pg) SelectUserHistory(uid int) (orders []models.OrderNew, err error) {
+	q := `SELECT number, sum, time FROM orders WHERE user_id = $1 AND sum > 0`
+	err = pg.Sqlx.Select(&orders, q, uid)
+	return orders, err
 }

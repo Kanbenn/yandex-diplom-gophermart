@@ -6,7 +6,6 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/Kanbenn/gophermart/internal/jwtoken"
 	"github.com/Kanbenn/gophermart/internal/models"
 	"github.com/Kanbenn/gophermart/internal/storage"
 )
@@ -39,7 +38,7 @@ func (h *Handler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (h *Handler) AuthUser(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) LoginUser(w http.ResponseWriter, r *http.Request) {
 
 	var in models.UserInsert
 	if err := json.NewDecoder(r.Body).Decode(&in); err != nil {
@@ -47,8 +46,8 @@ func (h *Handler) AuthUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	u := h.db.GetUser(in.Login)
-	if u.ID == 0 || u.Password != in.Password {
+	u := h.db.SelectUser(in.Login)
+	if u.ID < 1 || u.Password != in.Password {
 		log.Println("Handler.AuthUser error: wrong login or password for", in)
 		http.Error(w, "wrong login or password", http.StatusUnauthorized)
 		return
@@ -62,15 +61,48 @@ func (h *Handler) AuthUser(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func writeAuthCookie(w http.ResponseWriter, uid int) error {
-	tokenString, err := jwtoken.MakeToken(uid)
+func (h *Handler) GetUserBalance(w http.ResponseWriter, r *http.Request) {
+
+	uid := r.Context().Value(models.CtxKeyUser).(int)
+
+	orders, err := h.db.SelectUserBalance(uid)
 	if err != nil {
-		return err
+		log.Println("h.GetUserBalance error:", uid, orders, err)
+		w.WriteHeader(http.StatusUnauthorized)
+		return
 	}
-	newCookie := &http.Cookie{
-		Name:  "auth",
-		Value: tokenString,
+	out, err := json.Marshal(orders)
+	if err != nil {
+		log.Println("h.GetOrders error at writing json:", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
-	http.SetCookie(w, newCookie)
-	return nil
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(out)
+}
+
+func (h *Handler) GetUserHistory(w http.ResponseWriter, r *http.Request) {
+	uid := r.Context().Value(models.CtxKeyUser).(int)
+	orders, err := h.db.SelectUserHistory(uid)
+	if err != nil {
+		log.Println("h.GetUserHistory err:", orders, err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	if len(orders) < 1 {
+		log.Println("h.GetUserHistory err: нет ни одного списания", uid, orders, err)
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+
+	out, err := json.Marshal(orders)
+	if err != nil {
+		log.Println("h.GetUserHistory error at writing json:", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(out)
 }

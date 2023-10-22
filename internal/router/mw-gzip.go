@@ -24,7 +24,7 @@ func GzipMiddleware(next http.Handler) http.Handler {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			r.Body = io.ReadCloser(zr)
+			r.Body = io.NopCloser(zr)
 		}
 
 		// compress the outgoing response

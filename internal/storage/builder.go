@@ -16,18 +16,20 @@ const (
 		id 		   SERIAL PRIMARY KEY,
 		login      TEXT NOT NULL UNIQUE,
 		password   TEXT NOT NULL,
-		updated_at TIMESTAMP without time zone DEFAULT NOW()
+		updated_at TIMESTAMP without time zone DEFAULT NOW(),
+		balance    DECIMAL(12,2) DEFAULT 0,
+		withdrawn  DECIMAL(12,2) DEFAULT 0
 	);
 	CREATE INDEX IF NOT EXISTS ulogin ON users(login);
 	
 	CREATE TABLE IF NOT EXISTS orders (
 		id 		    SERIAL PRIMARY KEY,
 		number      TEXT NOT NULL UNIQUE,
-		-- user_id     INTEGER REFERENCES users(id),
-		user_id     INTEGER,
+		user_id     INTEGER REFERENCES users(id),
 		status      TEXT DEFAULT 'NEW',
-		accrual		INTEGER,
-		uploaded_at TEXT,
+		bonus		DECIMAL(12,2) DEFAULT 0,
+		sum  		DECIMAL(12,2) DEFAULT 0,
+		time		TEXT,
 		created_at  TIMESTAMP without time zone DEFAULT NOW(),
 		updated_at  TIMESTAMP without time zone DEFAULT NOW()
 	);
@@ -35,8 +37,9 @@ const (
 )
 
 type Pg struct {
-	Sqlx *sqlx.DB
-	Cfg  config.Config
+	Sqlx   *sqlx.DB
+	Cfg    config.Config
+	StopCh chan struct{}
 }
 
 func NewPostgres(cfg config.Config) *Pg {
@@ -50,7 +53,8 @@ func NewPostgres(cfg config.Config) *Pg {
 	if _, err := conn.Exec(createTables); err != nil {
 		log.Fatal("error at creating db-tables:", cfg.PgConnStr, err)
 	}
-	return &Pg{conn, cfg}
+	sch := make(chan struct{})
+	return &Pg{conn, cfg, sch}
 }
 
 func (pg *Pg) Close() error {
