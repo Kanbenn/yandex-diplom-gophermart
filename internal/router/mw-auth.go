@@ -9,7 +9,7 @@ import (
 	"github.com/Kanbenn/gophermart/internal/models"
 )
 
-func RequireAuthMiddleware(next http.Handler) http.Handler {
+func requireAuthMiddleware(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		uid, err := parseTokenFromCookie(r)
 		if err != nil {

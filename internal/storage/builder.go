@@ -37,9 +37,8 @@ const (
 )
 
 type Pg struct {
-	Sqlx   *sqlx.DB
-	Cfg    config.Config
-	StopCh chan struct{}
+	Sqlx *sqlx.DB
+	Cfg  config.Config
 }
 
 func NewPostgres(cfg config.Config) *Pg {
@@ -53,8 +52,8 @@ func NewPostgres(cfg config.Config) *Pg {
 	if _, err := conn.Exec(createTables); err != nil {
 		log.Fatal("error at creating db-tables:", cfg.PgConnStr, err)
 	}
-	sch := make(chan struct{})
-	return &Pg{conn, cfg, sch}
+
+	return &Pg{conn, cfg}
 }
 
 func (pg *Pg) Close() error {

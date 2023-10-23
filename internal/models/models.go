@@ -15,6 +15,7 @@ type UserBalance struct {
 type OrderNew struct {
 	Number string  `json:"order"`
 	User   int     `json:"-"`
+	Status string  `json:"-"`
 	Sum    float32 `json:"sum" `
 	Time   string  `json:"processed_at"`
 }

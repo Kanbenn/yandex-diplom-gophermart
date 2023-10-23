@@ -12,7 +12,7 @@ type compressWriter struct {
 	http.ResponseWriter
 }
 
-func GzipMiddleware(next http.Handler) http.Handler {
+func gzipMiddleware(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 
 		// decompress the incoming request

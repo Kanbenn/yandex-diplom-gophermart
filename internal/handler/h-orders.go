@@ -24,28 +24,29 @@ func (h *Handler) PostNewOrder(w http.ResponseWriter, r *http.Request) {
 	uid := r.Context().Value(models.CtxKeyUser).(int)
 	order := models.OrderNew{Number: string(number), User: uid}
 
-	e := h.db.InsertNewOrder(order)
-	w.WriteHeader(statusFromInsertNewOrderResults(e))
+	e := h.db.InsertOrder(order)
+	w.WriteHeader(statusFromInsertOrderResults(e))
 }
 
-func (h *Handler) PostNewBonusOrder(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) PostNewOrderWithBonus(w http.ResponseWriter, r *http.Request) {
 	uid := r.Context().Value(models.CtxKeyUser).(int)
-	log.Println("h.PostNewBonusOrder:", uid)
+	log.Println("h.PostNewOrderWithBonus:", uid)
 	var order models.OrderNew
 	if err := json.NewDecoder(r.Body).Decode(&order); err != nil {
-		log.Println("h.PostNewBonusOrder error at reading input json:", err)
+		log.Println("h.PostNewOrderWithBonus error at reading input json:", err)
 		http.Error(w, "unreadable json data", http.StatusBadRequest)
 		return
 	}
-	log.Println("h.PostNewBonusOrder got this json data:", order)
+	log.Println("h.PostNewOrderWithBonus got this json data:", order)
 	if !luhn.IsValidLuhnNumber([]byte(order.Number)) {
-		log.Println("h.PostNewBonusOrder luhn formula error:", order)
+		log.Println("h.PostNewOrderWithBonus luhn formula error:", order)
 		http.Error(w, "неверный формат номера заказа;", http.StatusUnprocessableEntity)
 		return
 	}
 	order.User = uid
+	order.Status = "PROCESSED"
 
-	err := h.db.InsertNewBonusOrder(order)
-	log.Println("h.PostNewBonusOrder result from pg.Insert:", order, err)
-	w.WriteHeader(statusFromInsertNewBonusOrderResults(err))
+	err := h.db.InsertOrderWithBonus(order)
+	log.Println("h.PostNewOrderWithBonus result from pg.Insert:", order, err)
+	w.WriteHeader(statusFromInsertOrderWithBonusResults(err))
 }

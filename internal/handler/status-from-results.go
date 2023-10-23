@@ -6,7 +6,7 @@ import (
 	"github.com/Kanbenn/gophermart/internal/storage"
 )
 
-func statusFromInsertNewOrderResults(e error) int {
+func statusFromInsertOrderResults(e error) int {
 	switch e {
 	case nil:
 		return http.StatusAccepted
@@ -22,14 +22,15 @@ func statusFromInsertNewOrderResults(e error) int {
 	}
 }
 
-func statusFromInsertNewBonusOrderResults(e error) int {
+func statusFromInsertOrderWithBonusResults(e error) int {
 	switch e {
 	case nil:
 		return http.StatusOK
 	case storage.ErrNotEnoughMinerals:
 		return http.StatusPaymentRequired
 	case storage.ErrOrderWasPostedByThisUser, storage.ErrOrderWasPostedByAnotherUser:
-		return http.StatusConflict
+		// return http.StatusConflict ???
+		return http.StatusUnprocessableEntity
 	case storage.ErrUserUnknown:
 		return http.StatusUnauthorized
 	default:

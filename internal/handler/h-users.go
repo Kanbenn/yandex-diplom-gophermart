@@ -10,7 +10,7 @@ import (
 	"github.com/Kanbenn/gophermart/internal/storage"
 )
 
-func (h *Handler) RegisterUser(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) RegisterNewUser(w http.ResponseWriter, r *http.Request) {
 
 	var u models.UserInsert
 	if err := json.NewDecoder(r.Body).Decode(&u); err != nil {
@@ -18,17 +18,16 @@ func (h *Handler) RegisterUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	uid, err := h.db.InsertUser(u)
+	uid, err := h.db.InsertNewUser(u)
 	switch {
 	case errors.Is(err, storage.ErrLoginNotUnique):
-		log.Println("Handler.RegisterUser error:", u, err)
 		http.Error(w, storage.ErrLoginNotUnique.Error(), http.StatusConflict)
 		return
 	case err != nil:
-		log.Println("Handler.RegisterUser error:", u, err)
 		http.Error(w, "server error", http.StatusInternalServerError)
 		return
 	}
+	log.Println("Handler.RegisterUser:", u, err)
 
 	if err := writeAuthCookie(w, uid); err != nil {
 		log.Println("Handler.RegisterUser error at building jwt-cookie:", uid, err)
@@ -46,7 +45,7 @@ func (h *Handler) LoginUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	u := h.db.SelectUser(in.Login)
+	u := h.db.SelectUserAuth(in.Login)
 	if u.ID < 1 || u.Password != in.Password {
 		log.Println("Handler.AuthUser error: wrong login or password for", in)
 		http.Error(w, "wrong login or password", http.StatusUnauthorized)
@@ -61,9 +60,9 @@ func (h *Handler) LoginUser(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
-func (h *Handler) GetUserOrders(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) GetUserAllOrders(w http.ResponseWriter, r *http.Request) {
 	uid := r.Context().Value(models.CtxKeyUser).(int)
-	orders, err := h.db.SelectUserOrders(uid)
+	orders, err := h.db.SelectUserAllOrders(uid)
 	if err != nil {
 		log.Println("h.GetOrders error from Pg:", orders, err)
 		w.WriteHeader(http.StatusInternalServerError)
@@ -89,10 +88,10 @@ func (h *Handler) GetUserBalance(w http.ResponseWriter, r *http.Request) {
 	writeJsnResponse(w, orders)
 }
 
-func (h *Handler) GetUserHistory(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) GetUserWithdrawHistory(w http.ResponseWriter, r *http.Request) {
 	uid := r.Context().Value(models.CtxKeyUser).(int)
 
-	orders, err := h.db.SelectUserHistory(uid)
+	orders, err := h.db.SelectUserWithdrawHistory(uid)
 	if err != nil {
 		log.Println("h.GetUserHistory err:", orders, err)
 		w.WriteHeader(http.StatusInternalServerError)

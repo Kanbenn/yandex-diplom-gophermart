@@ -14,7 +14,7 @@ func (pg *Pg) LaunchWorkerAccrual() {
 	log.Println("launching accrual worker")
 
 	for {
-		orders, err := pg.selectUnprocessedOrders()
+		orders, err := pg.SelectOrdersUnprocessed()
 		if err != nil {
 			log.Println("Pg.selectUnprocessedOrders:", orders, err)
 		}
@@ -37,10 +37,10 @@ func (pg *Pg) LaunchWorkerAccrual() {
 }
 
 func (pg *Pg) askAccrualForOrderUpdates(order models.AccrualResponse) (models.AccrualResponse, error) {
-	httpc := resty.New().SetBaseURL(pg.Cfg.AccrualAddr)
+	httpc := resty.New().SetBaseURL(pg.Cfg.AccrualLink)
 	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Millisecond)
 	accrualPath := "/api/orders/" + order.Number
-	log.Println("making a request to Accrual:", pg.Cfg.AccrualAddr, order)
+	log.Println("making a request to Accrual:", pg.Cfg.AccrualLink, order)
 	req := httpc.R().
 		SetContext(ctx).
 		SetResult(&order)
@@ -79,7 +79,7 @@ func (pg *Pg) updateOrderStatusAndUserBalance(order models.AccrualResponse) (err
 	return nil
 }
 
-func (pg *Pg) selectUnprocessedOrders() (orders []models.AccrualResponse, err error) {
+func (pg *Pg) SelectOrdersUnprocessed() (orders []models.AccrualResponse, err error) {
 	q := `SELECT number, user_id, status FROM orders
 	WHERE status NOT IN ('PROCESSED','INVALID')`
 	err = pg.Sqlx.Select(&orders, q)

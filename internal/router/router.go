@@ -11,27 +11,29 @@ func New(h *handler.Handler) *chi.Mux {
 	r := chi.NewRouter()
 
 	r.Use(chimw.Logger)
-	r.Use(GzipMiddleware)
+	r.Use(gzipMiddleware)
 
 	r.Mount("/debug", chimw.Profiler())
 
 	r.Group(func(r chi.Router) {
-		r.Use(RequireJsnMiddleware)
-		r.Post("/api/user/register", h.RegisterUser)
+		r.Use(requireJsnMiddleware)
+		r.Post("/api/user/register", h.RegisterNewUser)
 		r.Post("/api/user/login", h.LoginUser)
 
 	})
 	r.Group(func(r chi.Router) {
-		r.Use(RequireAuthMiddleware)
+		r.Use(requireAuthMiddleware)
 		r.Post("/api/user/orders", h.PostNewOrder)
-		r.Get("/api/user/orders", h.GetUserOrders)
+		r.Get("/api/user/orders", h.GetUserAllOrders)
 		r.Get("/api/user/balance", h.GetUserBalance)
-		r.Get("/api/user/withdrawals", h.GetUserHistory)
+		r.Get("/api/user/withdrawals", h.GetUserWithdrawHistory)
 	})
-	r.Group(func(r chi.Router) {
-		r.Use(RequireAuthMiddleware)
-		r.Use(RequireJsnMiddleware)
-		r.Post("/api/user/balance/withdraw", h.PostNewBonusOrder)
-	})
+	r.With(requireAuthMiddleware, requireJsnMiddleware).
+		Post("/api/user/balance/withdraw", h.PostNewOrderWithBonus)
+	// r.Group(func(r chi.Router) {
+	// 	r.Use(requireAuthMiddleware)
+	// 	r.Use(requireJsnMiddleware)
+	// 	r
+	// })
 	return r
 }

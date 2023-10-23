@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func RequireJsnMiddleware(next http.Handler) http.Handler {
+func requireJsnMiddleware(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 
 		if !isJsnContentType(r) {
