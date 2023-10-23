@@ -61,6 +61,21 @@ func (h *Handler) LoginUser(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+func (h *Handler) GetUserOrders(w http.ResponseWriter, r *http.Request) {
+	uid := r.Context().Value(models.CtxKeyUser).(int)
+	orders, err := h.db.SelectUserOrders(uid)
+	if err != nil {
+		log.Println("h.GetOrders error from Pg:", orders, err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	if len(orders) < 1 {
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+	writeJsnResponse(w, orders)
+}
+
 func (h *Handler) GetUserBalance(w http.ResponseWriter, r *http.Request) {
 
 	uid := r.Context().Value(models.CtxKeyUser).(int)
@@ -71,19 +86,12 @@ func (h *Handler) GetUserBalance(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
-	out, err := json.Marshal(orders)
-	if err != nil {
-		log.Println("h.GetOrders error at writing json:", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write(out)
+	writeJsnResponse(w, orders)
 }
 
 func (h *Handler) GetUserHistory(w http.ResponseWriter, r *http.Request) {
 	uid := r.Context().Value(models.CtxKeyUser).(int)
+
 	orders, err := h.db.SelectUserHistory(uid)
 	if err != nil {
 		log.Println("h.GetUserHistory err:", orders, err)
@@ -95,14 +103,5 @@ func (h *Handler) GetUserHistory(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}
-
-	out, err := json.Marshal(orders)
-	if err != nil {
-		log.Println("h.GetUserHistory error at writing json:", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write(out)
+	writeJsnResponse(w, orders)
 }

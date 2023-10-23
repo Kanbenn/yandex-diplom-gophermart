@@ -28,29 +28,6 @@ func (h *Handler) PostNewOrder(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(statusFromInsertNewOrderResults(e))
 }
 
-func (h *Handler) GetUserOrders(w http.ResponseWriter, r *http.Request) {
-	uid := r.Context().Value(models.CtxKeyUser).(int)
-	orders, err := h.db.SelectUserOrders(uid)
-	if err != nil {
-		log.Println("h.GetOrders error from Pg:", orders, err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	if len(orders) < 1 {
-		w.WriteHeader(http.StatusNoContent)
-		return
-	}
-	out, err := json.Marshal(orders)
-	if err != nil {
-		log.Println("h.GetOrders error at writing json:", err)
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write(out)
-}
-
 func (h *Handler) PostNewBonusOrder(w http.ResponseWriter, r *http.Request) {
 	uid := r.Context().Value(models.CtxKeyUser).(int)
 	log.Println("h.PostNewBonusOrder:", uid)
