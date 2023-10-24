@@ -29,8 +29,8 @@ func statusFromInsertOrderWithBonusResults(e error) int {
 	case storage.ErrNotEnoughMinerals:
 		return http.StatusPaymentRequired
 	case storage.ErrOrderWasPostedByThisUser, storage.ErrOrderWasPostedByAnotherUser:
-		// return http.StatusConflict ???
-		return http.StatusUnprocessableEntity
+		return http.StatusConflict
+		// return http.StatusUnprocessableEntity
 	case storage.ErrUserUnknown:
 		return http.StatusUnauthorized
 	default:

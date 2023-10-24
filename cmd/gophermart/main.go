@@ -8,16 +8,16 @@ import (
 	"github.com/Kanbenn/gophermart/internal/handler"
 	"github.com/Kanbenn/gophermart/internal/router"
 	"github.com/Kanbenn/gophermart/internal/storage"
+	"github.com/jmoiron/sqlx"
 )
 
 func main() {
 
 	cfg := config.NewFromFlagsAndEnvs()
-
-	pg := storage.NewPostgres(cfg)
-	defer func() {
-		log.Println("defer closing Postgres:", pg.Close(), cfg.Addr)
-	}()
+	conn := connectToPostgres(cfg)
+	pg := storage.NewInPostgres(cfg, conn)
+	defer pg.Close()
+	pg.CreateTables()
 
 	go pg.LaunchWorkerAccrual()
 
@@ -32,20 +32,14 @@ func main() {
 
 }
 
-// TODO:
-// graceful shutdown с каналами и мидлваркой
-// при запуске, подгружать необработанные заказы из базы в горутину для accrual.
+func connectToPostgres(cfg config.Config) *sqlx.DB {
 
-// ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
-// defer stop()
-// <-ctx.Done()
-// pg.StopCh <- struct{}{}
-// os.Exit(0)
-
-// c :=
-// go func() {
-// 	fmt.Println("got the signal from OS", <-c)
-// 	pg.StopCh<- struct{}{}
-// 	fmt.Println("Exiting...")
-// 	os.Exit(0)
-// }()
+	conn, err := sqlx.Open("postgres", cfg.PgConnStr)
+	if err != nil {
+		log.Fatal("error at connecting to Postgres:", cfg.PgConnStr, err)
+	}
+	if err := conn.Ping(); err != nil {
+		log.Fatal("error at pinging the Postgres db:", cfg.PgConnStr, err)
+	}
+	return conn
+}

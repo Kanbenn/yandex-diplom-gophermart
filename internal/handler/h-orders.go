@@ -22,31 +22,28 @@ func (h *Handler) PostNewOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	uid := r.Context().Value(models.CtxKeyUser).(int)
-	order := models.OrderNew{Number: string(number), User: uid}
+	order := models.Order{Number: string(number), User: uid}
 
 	e := h.db.InsertOrder(order)
 	w.WriteHeader(statusFromInsertOrderResults(e))
 }
 
 func (h *Handler) PostNewOrderWithBonus(w http.ResponseWriter, r *http.Request) {
-	uid := r.Context().Value(models.CtxKeyUser).(int)
-	log.Println("h.PostNewOrderWithBonus:", uid)
-	var order models.OrderNew
+	var order models.Order
+	order.User = r.Context().Value(models.CtxKeyUser).(int)
 	if err := json.NewDecoder(r.Body).Decode(&order); err != nil {
 		log.Println("h.PostNewOrderWithBonus error at reading input json:", err)
 		http.Error(w, "unreadable json data", http.StatusBadRequest)
 		return
 	}
-	log.Println("h.PostNewOrderWithBonus got this json data:", order)
+	log.Println("h.PostNewOrderWithBonus got this json data for user:", order)
+
 	if !luhn.IsValidLuhnNumber([]byte(order.Number)) {
 		log.Println("h.PostNewOrderWithBonus luhn formula error:", order)
 		http.Error(w, "неверный формат номера заказа;", http.StatusUnprocessableEntity)
 		return
 	}
-	order.User = uid
-	order.Status = "PROCESSED"
 
 	err := h.db.InsertOrderWithBonus(order)
-	log.Println("h.PostNewOrderWithBonus result from pg.Insert:", order, err)
 	w.WriteHeader(statusFromInsertOrderWithBonusResults(err))
 }

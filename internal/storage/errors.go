@@ -25,6 +25,13 @@ func isNotUniqueInsert(e error) bool {
 	return false
 }
 
+func isNotEnoughMinerals(e error) bool {
+	if err, ok := e.(*pq.Error); ok && err.Code == "23514" {
+		return true
+	}
+	return false
+}
+
 func isForeignKeyViolation(e error) bool {
 	if err, ok := e.(*pq.Error); ok && err.Code == "23503" {
 		return true

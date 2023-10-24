@@ -17,7 +17,7 @@ const (
 		login      TEXT NOT NULL UNIQUE,
 		password   TEXT NOT NULL,
 		updated_at TIMESTAMP without time zone DEFAULT NOW(),
-		balance    DECIMAL(12,2) DEFAULT 0,
+		balance    DECIMAL(12,2) CHECK (balance >= 0) DEFAULT 0,
 		withdrawn  DECIMAL(12,2) DEFAULT 0
 	);
 	CREATE INDEX IF NOT EXISTS ulogin ON users(login);
@@ -41,19 +41,14 @@ type Pg struct {
 	Cfg  config.Config
 }
 
-func NewPostgres(cfg config.Config) *Pg {
-	conn, err := sqlx.Open("postgres", cfg.PgConnStr)
-	if err != nil {
-		log.Fatal("error at connecting to Postgres:", cfg.PgConnStr, err)
-	}
-	if err := conn.Ping(); err != nil {
-		log.Fatal("error at pinging the Postgres db:", cfg.PgConnStr, err)
-	}
-	if _, err := conn.Exec(createTables); err != nil {
-		log.Fatal("error at creating db-tables:", cfg.PgConnStr, err)
-	}
-
+func NewInPostgres(cfg config.Config, conn *sqlx.DB) *Pg {
 	return &Pg{conn, cfg}
+}
+
+func (pg *Pg) CreateTables() {
+	if _, err := pg.Sqlx.Exec(createTables); err != nil {
+		log.Fatal("error at creating db-tables:", pg.Cfg.PgConnStr, err)
+	}
 }
 
 func (pg *Pg) Close() error {

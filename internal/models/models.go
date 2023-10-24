@@ -12,7 +12,7 @@ type UserBalance struct {
 	Withdrawn float32 `json:"withdrawn"`
 }
 
-type OrderNew struct {
+type Order struct {
 	Number string  `json:"order"`
 	User   int     `json:"-"`
 	Status string  `json:"-"`

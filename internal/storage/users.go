@@ -34,7 +34,7 @@ func (pg *Pg) SelectUserBalance(uid int) (ub models.UserBalance, err error) {
 	return ub, err
 }
 
-func (pg *Pg) SelectUserWithdrawHistory(uid int) (orders []models.OrderNew, err error) {
+func (pg *Pg) SelectUserWithdrawHistory(uid int) (orders []models.Order, err error) {
 	q := `SELECT number, sum, time FROM orders WHERE user_id = $1 AND sum > 0`
 	err = pg.Sqlx.Select(&orders, q, uid)
 	return orders, err

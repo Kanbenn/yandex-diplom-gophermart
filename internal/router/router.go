@@ -30,10 +30,5 @@ func New(h *handler.Handler) *chi.Mux {
 	})
 	r.With(requireAuthMiddleware, requireJsnMiddleware).
 		Post("/api/user/balance/withdraw", h.PostNewOrderWithBonus)
-	// r.Group(func(r chi.Router) {
-	// 	r.Use(requireAuthMiddleware)
-	// 	r.Use(requireJsnMiddleware)
-	// 	r
-	// })
 	return r
 }

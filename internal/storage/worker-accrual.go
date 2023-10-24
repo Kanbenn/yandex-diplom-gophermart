@@ -14,7 +14,7 @@ func (pg *Pg) LaunchWorkerAccrual() {
 	log.Println("launching accrual worker")
 
 	for {
-		orders, err := pg.SelectOrdersUnprocessed()
+		orders, err := pg.selectOrdersUnprocessed()
 		if err != nil {
 			log.Println("Pg.selectUnprocessedOrders:", orders, err)
 		}
@@ -24,12 +24,13 @@ func (pg *Pg) LaunchWorkerAccrual() {
 		for _, order := range orders {
 			result, err := pg.askAccrualForOrderUpdates(order)
 			if err != nil {
-				log.Println("Pg.Worker request error:", order, err)
+				log.Println("Pg.Worker request-Accrual error:", order, err)
+				time.Sleep(20 * time.Second)
 				continue
 			}
 			log.Println("Pg.Worker updating order status:", order, result)
 			if err := pg.updateOrderStatusAndUserBalance(result); err != nil {
-				log.Println("Pg.Worker error updating order:", order, err)
+				log.Println("Pg.Worker error updating order in db:", err)
 			}
 		}
 		time.Sleep(1 * time.Second)
@@ -79,7 +80,7 @@ func (pg *Pg) updateOrderStatusAndUserBalance(order models.AccrualResponse) (err
 	return nil
 }
 
-func (pg *Pg) SelectOrdersUnprocessed() (orders []models.AccrualResponse, err error) {
+func (pg *Pg) selectOrdersUnprocessed() (orders []models.AccrualResponse, err error) {
 	q := `SELECT number, user_id, status FROM orders
 	WHERE status NOT IN ('PROCESSED','INVALID')`
 	err = pg.Sqlx.Select(&orders, q)
