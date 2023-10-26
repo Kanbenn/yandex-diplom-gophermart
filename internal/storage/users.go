@@ -20,7 +20,7 @@ func (pg *Pg) SelectUserAuth(login string) (user models.UserInsert) {
 	return user
 }
 
-func (pg *Pg) SelectUserAllOrders(uid int) (orders []models.OrderResponse, err error) {
+func (pg *Pg) SelectUserOrders(uid int) (orders []models.OrderResponse, err error) {
 	q := `
 	SELECT number,status,bonus,time FROM orders
 	WHERE user_id = $1 ORDER BY created_at`

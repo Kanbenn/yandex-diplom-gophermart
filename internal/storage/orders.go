@@ -11,13 +11,14 @@ func (pg *Pg) InsertOrder(o models.Order) error {
 	q := `
 	INSERT INTO orders (number, user_id, time) VALUES($1, $2, $3)
 	ON CONFLICT (number) DO UPDATE SET updated_at = NOW()
-	RETURNING user_id, (updated_at > created_at) AS was_conflict`
+	RETURNING user_id, number, (updated_at > created_at) AS was_conflict`
 
 	o.Time = timeForNewOrders()
-	result := models.OrderInsertResult{}
-	result.Err = pg.Sqlx.QueryRowx(q, o.Number, o.User, o.Time).
-		Scan(&result.User, &result.WasConflict)
-	return pg.checkInsertOrderResults(result, o)
+	r := orderInsertResult{}
+	r.Err = pg.Sqlx.QueryRowx(q, o.Number, o.User, o.Time).
+		Scan(&r.User, &r.Number, &r.WasConflict)
+	r.SameUser = o.User == r.User
+	return checkInsertOrderResults(r)
 }
 
 func (pg *Pg) InsertOrderWithBonus(o models.Order) error {
@@ -50,25 +51,24 @@ func (pg *Pg) InsertOrderWithBonus(o models.Order) error {
 	return nil
 }
 
-func (pg *Pg) checkInsertOrderResults(res models.OrderInsertResult, o models.Order) error {
-	log.Println("pg.InsertOrder results:", o, res)
-	if isForeignKeyViolation(res.Err) {
-		log.Println("pg.InsertOrder error: incorrect user_id FK", o, res)
-		return ErrUserUnknown
-	}
-	if res.User != o.User {
-		log.Println("другой юзер уже загрузил этот номер заказа", o, res)
+func checkInsertOrderResults(res orderInsertResult) error {
+	if !res.SameUser {
+		log.Println("другой юзер уже загрузил этот номер заказа", res)
 		return ErrOrderWasPostedByAnotherUser
 	}
-	if res.WasConflict {
-		log.Println("номер заказа уже был загружен этим юзером", o, res)
+	if res.WasConflict && res.SameUser {
+		log.Println("номер заказа уже был загружен этим юзером", res)
 		return ErrOrderWasPostedByThisUser
 	}
-	if res.Err != nil {
+	if isForeignKeyViolation(res.Err) {
+		log.Println("pg.InsertOrder error: incorrect user_id FK")
+		return ErrUserUnknown
+	}
+	if res.Err != nil && !isForeignKeyViolation(res.Err) {
 		log.Printf("\n pg.InsertOrder unexpected error: %#v \n\n", res.Err)
 		return ErrUnxpectedError
 	}
-	log.Println("успешно принят новый заказ", o)
+	log.Println("успешно принят новый заказ", res.Number)
 	return nil
 }
 

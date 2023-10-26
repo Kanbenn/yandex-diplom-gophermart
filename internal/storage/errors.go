@@ -18,6 +18,14 @@ var (
 	ErrUnxpectedError = errors.New("unexpected server error")
 )
 
+type orderInsertResult struct {
+	User        int
+	WasConflict bool
+	SameUser    bool
+	Number      string
+	Err         error
+}
+
 func isNotUniqueInsert(e error) bool {
 	if err, ok := e.(*pq.Error); ok && err.Code == "23505" {
 		return true

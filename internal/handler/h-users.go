@@ -62,7 +62,7 @@ func (h *Handler) LoginUser(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) GetUserAllOrders(w http.ResponseWriter, r *http.Request) {
 	uid := r.Context().Value(models.CtxKeyUser).(int)
-	orders, err := h.db.SelectUserAllOrders(uid)
+	orders, err := h.db.SelectUserOrders(uid)
 	if err != nil {
 		log.Println("h.GetOrders error from Pg:", orders, err)
 		w.WriteHeader(http.StatusInternalServerError)

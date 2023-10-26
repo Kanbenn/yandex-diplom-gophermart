@@ -20,12 +20,6 @@ type Order struct {
 	Time   string  `json:"processed_at"`
 }
 
-type OrderInsertResult struct {
-	User        int
-	WasConflict bool
-	Err         error
-}
-
 type OrderResponse struct {
 	Number string  `json:"number"`
 	Status string  `json:"status"`

@@ -33,7 +33,8 @@ const (
 		created_at  TIMESTAMP without time zone DEFAULT NOW(),
 		updated_at  TIMESTAMP without time zone DEFAULT NOW()
 	);
-	CREATE INDEX IF NOT EXISTS onumber ON orders(number);`
+	CREATE INDEX IF NOT EXISTS onumber ON orders(number);
+	CREATE INDEX IF NOT EXISTS ostatus ON orders(status);`
 )
 
 type Pg struct {
