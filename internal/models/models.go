@@ -1,6 +1,6 @@
 package models
 
-type UserInsert struct {
+type User struct {
 	ID       int    `json:"-"` // hide from json.Marshal
 	Login    string `json:"login"`
 	Password string `json:"password"`

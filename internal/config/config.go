@@ -3,12 +3,16 @@ package config
 import (
 	"flag"
 	"os"
+	"time"
 )
 
 type Config struct {
-	Addr        string
-	PgConnStr   string
-	AccrualLink string
+	Addr                  string
+	PgConnStr             string
+	AccrualLink           string
+	ProcessedAtTimeFormat string
+	NewBonusOrderStatus   string
+	FinishedOrderStatuses []string
 }
 
 func NewFromFlagsAndEnvs() Config {
@@ -27,5 +31,10 @@ func NewFromFlagsAndEnvs() Config {
 	if val := os.Getenv("ACCRUAL_SYSTEM_ADDRESS"); val != "" {
 		c.AccrualLink = val
 	}
+
+	c.ProcessedAtTimeFormat = time.RFC3339
+	c.NewBonusOrderStatus = "PROCESSED"
+	c.FinishedOrderStatuses = []string{"PROCESSED", "INVALID"}
+
 	return c
 }

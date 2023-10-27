@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	"github.com/Kanbenn/gophermart/internal/models"
-	"github.com/Kanbenn/gophermart/pkg/luhn"
 )
 
 func (h *Handler) PostNewOrder(w http.ResponseWriter, r *http.Request) {
@@ -17,15 +16,10 @@ func (h *Handler) PostNewOrder(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "неверный формат запроса;", http.StatusBadRequest)
 		return
 	}
-	if !luhn.IsValidLuhnNumber(number) {
-		http.Error(w, "неверный формат номера заказа;", http.StatusUnprocessableEntity)
-		return
-	}
 	uid := r.Context().Value(models.CtxKeyUser).(int)
 	order := models.Order{Number: string(number), User: uid}
-
-	e := h.db.InsertOrder(order)
-	w.WriteHeader(statusFromInsertOrderResults(e))
+	e := h.app.OrderNew(order)
+	w.WriteHeader(statusFromInsertNewOrderResult(e))
 }
 
 func (h *Handler) PostNewOrderWithBonus(w http.ResponseWriter, r *http.Request) {
@@ -38,12 +32,6 @@ func (h *Handler) PostNewOrderWithBonus(w http.ResponseWriter, r *http.Request) 
 	}
 	log.Println("h.PostNewOrderWithBonus got this json data for user:", order)
 
-	if !luhn.IsValidLuhnNumber([]byte(order.Number)) {
-		log.Println("h.PostNewOrderWithBonus luhn formula error:", order)
-		http.Error(w, "неверный формат номера заказа;", http.StatusUnprocessableEntity)
-		return
-	}
-
-	err := h.db.InsertOrderWithBonus(order)
-	w.WriteHeader(statusFromInsertOrderWithBonusResults(err))
+	err := h.app.OrderNewWithBonus(order)
+	w.WriteHeader(statusFromResult(err))
 }

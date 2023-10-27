@@ -12,7 +12,7 @@ import (
 func requireAuthMiddleware(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		uid, err := parseTokenFromCookie(r)
-		if err != nil {
+		if err != nil || uid < 1 {
 			log.Println("RequireAuthMw error: unauthorized access attempt", err)
 			http.Error(w, "Auth required", http.StatusUnauthorized)
 			return

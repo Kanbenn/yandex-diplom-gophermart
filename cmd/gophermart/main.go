@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/Kanbenn/gophermart/internal/app"
 	"github.com/Kanbenn/gophermart/internal/config"
 	"github.com/Kanbenn/gophermart/internal/handler"
 	"github.com/Kanbenn/gophermart/internal/router"
@@ -21,7 +22,9 @@ func main() {
 
 	go pg.LaunchWorkerAccrual()
 
-	h := handler.New(cfg, pg)
+	app := app.New(cfg, pg)
+
+	h := handler.New(cfg, app, pg)
 	r := router.New(h)
 
 	log.Println("starting web-server on address:", cfg.Addr)

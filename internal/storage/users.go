@@ -4,20 +4,23 @@ import (
 	"github.com/Kanbenn/gophermart/internal/models"
 )
 
-func (pg *Pg) InsertNewUser(user models.UserInsert) (uid int, err error) {
+func (pg *Pg) InsertNewUser(user models.User) (uid int, err error) {
 	q := `INSERT INTO users(login, password) VALUES($1, $2)
 		  RETURNING id`
 	err = pg.Sqlx.QueryRowx(q, user.Login, user.Password).Scan(&uid)
 	if isNotUniqueInsert(err) {
-		return uid, ErrLoginNotUnique
+		return uid, models.ErrLoginNotUnique
 	}
 	return uid, err
 }
 
-func (pg *Pg) SelectUserAuth(login string) (user models.UserInsert) {
+func (pg *Pg) SelectUserAuth(login string) (user models.User, err error) {
 	q := `SELECT id, login, password FROM users WHERE login = $1`
-	_ = pg.Sqlx.Get(&user, q, login)
-	return user
+	err = pg.Sqlx.Get(&user, q, login)
+	if err != nil {
+		return user, err
+	}
+	return user, nil
 }
 
 func (pg *Pg) SelectUserOrders(uid int) (orders []models.OrderResponse, err error) {

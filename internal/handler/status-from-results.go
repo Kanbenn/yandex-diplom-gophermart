@@ -3,38 +3,44 @@ package handler
 import (
 	"net/http"
 
-	"github.com/Kanbenn/gophermart/internal/storage"
+	"github.com/Kanbenn/gophermart/internal/models"
 )
 
-func statusFromInsertOrderResults(e error) int {
+func statusFromInsertNewOrderResult(e error) int {
 	switch e {
 	case nil:
 		return http.StatusAccepted
-	case storage.ErrOrderWasPostedByThisUser:
+	case models.ErrLuhnFormulaViolation:
+		return http.StatusUnprocessableEntity
+	case models.ErrOrderWasPostedByThisUser:
 		return http.StatusOK
-	case storage.ErrOrderWasPostedByAnotherUser:
+	case models.ErrOrderWasPostedByAnotherUser:
 		return http.StatusConflict
-	case storage.ErrUserUnknown:
+	case models.ErrUserUnknown:
 		return http.StatusUnauthorized
 	default:
-		// storage.ErrUnxpectedError
+		// models.ErrUnxpectedError
 		return http.StatusInternalServerError
 	}
 }
 
-func statusFromInsertOrderWithBonusResults(e error) int {
-	switch e {
+func statusFromResult(err error) int {
+	switch err {
 	case nil:
 		return http.StatusOK
-	case storage.ErrNotEnoughMinerals:
+	case models.ErrLuhnFormulaViolation:
+		return http.StatusUnprocessableEntity
+	case models.ErrNotEnoughMinerals:
 		return http.StatusPaymentRequired
-	case storage.ErrOrderWasPostedByThisUser, storage.ErrOrderWasPostedByAnotherUser:
+	case models.ErrNoContent:
+		return http.StatusNoContent
+	case models.ErrOrderWasPostedByThisUser, models.ErrOrderWasPostedByAnotherUser:
 		return http.StatusConflict
 		// return http.StatusUnprocessableEntity
-	case storage.ErrUserUnknown:
+	case models.ErrUserUnknown:
 		return http.StatusUnauthorized
 	default:
-		// storage.ErrUnxpectedError
+		// models.ErrUnxpectedError
 		return http.StatusInternalServerError
 	}
 }

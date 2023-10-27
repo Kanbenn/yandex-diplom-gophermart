@@ -2,6 +2,7 @@ package storage
 
 import (
 	"log"
+	"time"
 
 	"github.com/jmoiron/sqlx" // needs a pg driver like github.com/lib/pq
 
@@ -54,4 +55,14 @@ func (pg *Pg) CreateTables() {
 
 func (pg *Pg) Close() error {
 	return pg.Sqlx.Close()
+}
+
+func (pg *Pg) statusForNewOrderWithBonus() string {
+	// чтобы новые заказы withdrawal не попадали на запросы к Accrual
+	return pg.Cfg.NewBonusOrderStatus
+}
+
+func (pg *Pg) timeForNewOrders() string {
+	// по Тех Заданию, для генерации json:"processed_at"
+	return time.Now().Format(pg.Cfg.ProcessedAtTimeFormat)
 }

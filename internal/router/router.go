@@ -11,6 +11,7 @@ func New(h *handler.Handler) *chi.Mux {
 	r := chi.NewRouter()
 
 	r.Use(chimw.Logger)
+	r.Use(rBodyCloserMiddleware)
 	r.Use(gzipMiddleware)
 
 	r.Mount("/debug", chimw.Profiler())
@@ -24,7 +25,7 @@ func New(h *handler.Handler) *chi.Mux {
 	r.Group(func(r chi.Router) {
 		r.Use(requireAuthMiddleware)
 		r.Post("/api/user/orders", h.PostNewOrder)
-		r.Get("/api/user/orders", h.GetUserAllOrders)
+		r.Get("/api/user/orders", h.GetUserOrders)
 		r.Get("/api/user/balance", h.GetUserBalance)
 		r.Get("/api/user/withdrawals", h.GetUserWithdrawHistory)
 	})

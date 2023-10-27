@@ -1,21 +1,10 @@
 package storage
 
 import (
-	"errors"
+	"log"
 
+	"github.com/Kanbenn/gophermart/internal/models"
 	"github.com/lib/pq"
-)
-
-var (
-	ErrLoginNotUnique    = errors.New("this login is already taken")
-	ErrUserUnknown       = errors.New("unknown user")
-	ErrNotAuthorized     = errors.New("unauthorized")
-	ErrNotEnoughMinerals = errors.New("user's balance doesn't have enough bonus points")
-
-	ErrOrderWasPostedByThisUser    = errors.New("this order number was already posted")
-	ErrOrderWasPostedByAnotherUser = errors.New("this order number was already posted by other user")
-
-	ErrUnxpectedError = errors.New("unexpected server error")
 )
 
 type orderInsertResult struct {
@@ -45,4 +34,46 @@ func isForeignKeyViolation(e error) bool {
 		return true
 	}
 	return false
+}
+
+func checkInsertOrderResults(res orderInsertResult) error {
+	if !res.SameUser {
+		log.Println("другой юзер уже загрузил этот номер заказа", res)
+		return models.ErrOrderWasPostedByAnotherUser
+	}
+	if res.WasConflict && res.SameUser {
+		log.Println("номер заказа уже был загружен этим юзером", res)
+		return models.ErrOrderWasPostedByThisUser
+	}
+	if isForeignKeyViolation(res.Err) {
+		log.Println("pg.InsertOrder error: incorrect user_id FK")
+		return models.ErrUserUnknown
+	}
+	if res.Err != nil && !isForeignKeyViolation(res.Err) {
+		log.Printf("\n pg.InsertOrder unexpected error: %#v \n\n", res.Err)
+		return models.ErrUnxpectedError
+	}
+	log.Println("успешно принят новый заказ", res.Number)
+	return nil
+}
+
+func checkInserOrderWithBonusErr(err error) error {
+	if isNotUniqueInsert(err) {
+		log.Println("заказ c таким номером уже существует")
+		return models.ErrOrderWasPostedByThisUser
+	}
+	log.Println("неожиданная ошибка при добавлении нового заказа withdrawal:")
+	log.Printf("%#v \n\n", err)
+	return models.ErrUnxpectedError
+}
+
+func checkUpdateUserBalanceErr(err error) error {
+	if isNotEnoughMinerals(err) {
+		log.Println("ошибка при добавлении нового заказа withdrawals")
+		log.Println("недостаточно бонусных баллов на балансе пользователя:")
+		return models.ErrNotEnoughMinerals
+	}
+	log.Println("неожиданная ошибка при списании баланса пользователя для заказа withdrawals:")
+	log.Printf("%#v \n\n", err)
+	return models.ErrUnxpectedError
 }
