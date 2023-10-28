@@ -1,4 +1,4 @@
-package storage
+package postgres
 
 import (
 	"log"
@@ -43,14 +43,18 @@ type Pg struct {
 	Cfg  config.Config
 }
 
-func NewInPostgres(cfg config.Config, conn *sqlx.DB) *Pg {
-	return &Pg{conn, cfg}
-}
+func New(cfg config.Config) *Pg {
+	conn, err := sqlx.Open("postgres", cfg.PgConnStr)
+	if err != nil {
+		log.Fatal("error at connecting to Postgres:", cfg.PgConnStr, err)
+	}
 
-func (pg *Pg) CreateTables() {
+	pg := Pg{conn, cfg}
+
 	if _, err := pg.Sqlx.Exec(createTables); err != nil {
 		log.Fatal("error at creating db-tables:", pg.Cfg.PgConnStr, err)
 	}
+	return &pg
 }
 
 func (pg *Pg) Close() error {

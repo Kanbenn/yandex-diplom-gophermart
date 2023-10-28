@@ -1,48 +1,33 @@
 package main
 
 import (
-	"log"
-	"net/http"
+	"context"
+	"os"
+	"os/signal"
 
 	"github.com/Kanbenn/gophermart/internal/app"
 	"github.com/Kanbenn/gophermart/internal/config"
-	"github.com/Kanbenn/gophermart/internal/handler"
-	"github.com/Kanbenn/gophermart/internal/router"
-	"github.com/Kanbenn/gophermart/internal/storage"
-	"github.com/jmoiron/sqlx"
+	"github.com/Kanbenn/gophermart/internal/postgres"
+	"github.com/Kanbenn/gophermart/internal/server"
+	"github.com/Kanbenn/gophermart/internal/worker"
 )
 
 func main() {
 
 	cfg := config.NewFromFlagsAndEnvs()
-	conn := connectToPostgres(cfg)
-	pg := storage.NewInPostgres(cfg, conn)
+
+	pg := postgres.New(cfg)
 	defer pg.Close()
-	pg.CreateTables()
 
-	go pg.LaunchWorkerAccrual()
+	ctx, _ := signal.NotifyContext(context.Background(), os.Interrupt)
 
-	app := app.New(cfg, pg)
+	wa := worker.New(cfg, pg)
+	go wa.LaunchWorkerAccrual(ctx)
 
-	h := handler.New(cfg, app, pg)
-	r := router.New(h)
+	app := app.New(cfg, pg, wa)
 
-	log.Println("starting web-server on address:", cfg.Addr)
-	err := http.ListenAndServe(cfg.Addr, r)
-	if err != nil {
-		panic(err)
-	}
+	srv := server.New(cfg, app)
+	go srv.ShutdownOnSignal(ctx)
+	srv.Launch()
 
-}
-
-func connectToPostgres(cfg config.Config) *sqlx.DB {
-
-	conn, err := sqlx.Open("postgres", cfg.PgConnStr)
-	if err != nil {
-		log.Fatal("error at connecting to Postgres:", cfg.PgConnStr, err)
-	}
-	if err := conn.Ping(); err != nil {
-		log.Fatal("error at pinging the Postgres db:", cfg.PgConnStr, err)
-	}
-	return conn
 }

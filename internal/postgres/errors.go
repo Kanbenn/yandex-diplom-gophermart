@@ -1,4 +1,4 @@
-package storage
+package postgres
 
 import (
 	"log"
@@ -36,7 +36,7 @@ func isForeignKeyViolation(e error) bool {
 	return false
 }
 
-func checkInsertOrderResults(res orderInsertResult) error {
+func (pg *Pg) checkInsertOrderResults(res orderInsertResult) error {
 	if !res.SameUser {
 		log.Println("другой юзер уже загрузил этот номер заказа", res)
 		return models.ErrOrderWasPostedByAnotherUser
@@ -57,7 +57,7 @@ func checkInsertOrderResults(res orderInsertResult) error {
 	return nil
 }
 
-func checkInserOrderWithBonusErr(err error) error {
+func (pg *Pg) checkInserOrderWithBonusErr(err error) error {
 	if isNotUniqueInsert(err) {
 		log.Println("заказ c таким номером уже существует")
 		return models.ErrOrderWasPostedByThisUser
@@ -67,7 +67,7 @@ func checkInserOrderWithBonusErr(err error) error {
 	return models.ErrUnxpectedError
 }
 
-func checkUpdateUserBalanceErr(err error) error {
+func (pg *Pg) checkUpdateUserBalanceErr(err error) error {
 	if isNotEnoughMinerals(err) {
 		log.Println("ошибка при добавлении нового заказа withdrawals")
 		log.Println("недостаточно бонусных баллов на балансе пользователя:")

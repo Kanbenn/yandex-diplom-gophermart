@@ -13,11 +13,12 @@ type UserBalance struct {
 }
 
 type Order struct {
-	Number string  `json:"order"`
-	User   int     `json:"-"`
-	Status string  `json:"-"`
-	Sum    float32 `json:"sum" `
-	Time   string  `json:"processed_at"`
+	Number       string  `json:"order"`
+	User         int     `json:"-"`
+	Status       string  `json:"-"`
+	IsWithdrawal bool    `json:"-"`
+	Sum          float32 `json:"sum" `
+	Time         string  `json:"processed_at"`
 }
 
 type OrderResponse struct {

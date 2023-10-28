@@ -22,20 +22,25 @@ func (app *App) UserAuth(in models.User) (uid int, err error) {
 	}
 	return out.ID, nil
 }
+func (app *App) OrderNew(order models.Order) (err error) {
+	if !luhn.IsValidLuhnNumber([]byte(order.Number)) {
+		log.Println("app.OrderNew luhn formula error:", order)
+		return models.ErrLuhnFormulaViolation
+	}
 
-func (app *App) OrderNew(order models.Order) error {
-	if !luhn.IsValidLuhnNumber([]byte(order.Number)) {
-		log.Println("app.OrderNew luhn formula error:", order)
-		return models.ErrLuhnFormulaViolation
+	if order.IsWithdrawal {
+		err = app.s.InsertOrderWithBonus(order)
+		log.Println("app.OrderNew with Bonus", order, err)
+		return err
 	}
-	return app.s.InsertOrder(order)
-}
-func (app *App) OrderNewWithBonus(order models.Order) error {
-	if !luhn.IsValidLuhnNumber([]byte(order.Number)) {
-		log.Println("app.OrderNew luhn formula error:", order)
-		return models.ErrLuhnFormulaViolation
+
+	log.Println("app.OrderNew to Accrual", order, err)
+	err = app.s.InsertOrder(order)
+	if err != nil {
+		return err
 	}
-	return app.s.InsertOrderWithBonus(order)
+	app.wa.NotifyWorker(order)
+	return nil
 }
 func (app *App) UserBalance(uid int) (ub models.UserBalance, err error) {
 	return app.s.SelectUserBalance(uid)
