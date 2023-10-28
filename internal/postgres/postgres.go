@@ -2,7 +2,6 @@ package postgres
 
 import (
 	"log"
-	"slices"
 
 	"github.com/Kanbenn/gophermart/internal/models"
 )
@@ -105,7 +104,7 @@ func (pg *Pg) UpdateOrderStatusAndUserBalance(order models.AccrualResponse) {
 		log.Println("Pg error updating order in db:", err)
 	}
 
-	if slices.Contains(pg.Cfg.FinishedOrderStatuses, order.Status) {
+	if order.Status == pg.Cfg.NewBonusOrderStatus {
 		log.Println("Pg updating user balance:", order)
 		qb := `UPDATE users SET balance= users.balance + :bonus WHERE id=:user_id`
 		if _, err = tx.NamedExec(qb, order); err != nil {
