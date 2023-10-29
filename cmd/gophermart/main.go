@@ -19,15 +19,14 @@ func main() {
 	pg := postgres.New(cfg)
 	defer pg.Close()
 
+	app := app.New(cfg, pg)
+
 	ctx, _ := signal.NotifyContext(context.Background(), os.Interrupt)
 
 	wa := worker.New(cfg, pg)
 	go wa.LaunchWorkerAccrual(ctx)
 
-	app := app.New(cfg, pg, wa)
-
 	srv := server.New(cfg, app)
 	go srv.ShutdownOnSignal(ctx)
 	srv.Launch()
-
 }

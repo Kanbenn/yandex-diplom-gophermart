@@ -14,4 +14,5 @@ var (
 	ErrLuhnFormulaViolation = errors.New("неверный формат номера заказа;")
 	ErrNoContent            = errors.New("no content")
 	ErrUnxpectedError       = errors.New("unexpected server error")
+	ErrNoOrdersForAccrual   = errors.New("no unfinished orders for accrual")
 )

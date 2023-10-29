@@ -1,7 +1,9 @@
 package postgres
 
 import (
+	"fmt"
 	"log"
+	"strings"
 
 	"github.com/Kanbenn/gophermart/internal/models"
 )
@@ -25,7 +27,7 @@ func (pg *Pg) SelectUserAuth(login string) (user models.User, err error) {
 	return user, nil
 }
 
-func (pg *Pg) SelectUserOrders(uid int) (orders []models.OrderResponse, err error) {
+func (pg *Pg) SelectUserOrders(uid int) (orders []models.UserOrder, err error) {
 	q := `
 	SELECT number,status,bonus,time FROM orders
 	WHERE user_id = $1 ORDER BY created_at`
@@ -59,10 +61,10 @@ func (pg *Pg) InsertOrder(o models.Order) error {
 	return pg.checkInsertOrderResults(r)
 }
 
-func (pg *Pg) InsertOrderWithBonus(o models.Order) error {
+func (pg *Pg) InsertOrderWithdrawal(o models.Order) error {
 	tx, err := pg.Sqlx.Beginx()
 	if err != nil {
-		log.Printf("\n pg.InsertOrderWithBonus unexpected tx error: %#v \n\n", err)
+		log.Printf("\n pg.InsertOrderWithdrawal unexpected tx error: %#v \n\n", err)
 		return models.ErrUnxpectedError
 	}
 	defer tx.Rollback()
@@ -90,21 +92,20 @@ func (pg *Pg) InsertOrderWithBonus(o models.Order) error {
 	return nil
 }
 
-func (pg *Pg) UpdateOrderStatusAndUserBalance(order models.AccrualResponse) {
+func (pg *Pg) UpdateOrderStatusAndUserBalance(order models.Accrual) {
 	tx, err := pg.Sqlx.Beginx()
 	if err != nil {
-		log.Println("Pg error updating order in db:", err)
+		log.Println("Pg.UpdateOrder: failed to begin the transaction", err)
 	}
 	defer tx.Rollback()
 
 	log.Println("Pg updating order status:", order)
-
 	qo := `UPDATE orders SET status=:status, bonus=:bonus WHERE number=:number`
 	if _, err := tx.NamedExec(qo, order); err != nil {
 		log.Println("Pg error updating order in db:", err)
 	}
 
-	if order.Status == pg.Cfg.NewBonusOrderStatus {
+	if pg.isFinalStatus(order.Status) {
 		log.Println("Pg updating user balance:", order)
 		qb := `UPDATE users SET balance= users.balance + :bonus WHERE id=:user_id`
 		if _, err = tx.NamedExec(qb, order); err != nil {
@@ -112,4 +113,15 @@ func (pg *Pg) UpdateOrderStatusAndUserBalance(order models.AccrualResponse) {
 		}
 	}
 	tx.Commit()
+}
+
+func (pg *Pg) SelectOrdersForAccrual() (orders []models.Accrual, err error) {
+	q := "SELECT number, user_id, status FROM orders WHERE status NOT IN ('%s')"
+	finishedStatuses := strings.Join(pg.Cfg.FinishedOrderStatuses, "','")
+	q = fmt.Sprintf(q, finishedStatuses)
+	err = pg.Sqlx.Select(&orders, q)
+	if err != nil {
+		return orders, models.ErrNoOrdersForAccrual
+	}
+	return orders, nil
 }

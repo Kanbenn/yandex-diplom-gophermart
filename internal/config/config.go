@@ -11,7 +11,7 @@ type Config struct {
 	PgConnStr             string
 	AccrualLink           string
 	ProcessedAtTimeFormat string
-	NewBonusOrderStatus   string
+	OrderFinalStatus      string
 	FinishedOrderStatuses []string
 }
 
@@ -33,7 +33,7 @@ func NewFromFlagsAndEnvs() Config {
 	}
 
 	c.ProcessedAtTimeFormat = time.RFC3339
-	c.NewBonusOrderStatus = "PROCESSED"
+	c.OrderFinalStatus = "PROCESSED"
 	c.FinishedOrderStatuses = []string{"PROCESSED", "INVALID"}
 
 	return c

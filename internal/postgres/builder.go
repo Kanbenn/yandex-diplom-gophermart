@@ -63,7 +63,7 @@ func (pg *Pg) Close() error {
 
 func (pg *Pg) statusForNewOrderWithBonus() string {
 	// чтобы новые заказы withdrawal не попадали на запросы к Accrual
-	return pg.Cfg.NewBonusOrderStatus
+	return pg.Cfg.OrderFinalStatus
 }
 
 func (pg *Pg) timeForNewOrders() string {

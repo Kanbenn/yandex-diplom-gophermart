@@ -12,6 +12,13 @@ type UserBalance struct {
 	Withdrawn float32 `json:"withdrawn"`
 }
 
+type UserOrder struct {
+	Number string  `json:"number"`
+	Status string  `json:"status"`
+	Bonus  float32 `json:"accrual,omitempty"`
+	Time   string  `json:"uploaded_at"`
+}
+
 type Order struct {
 	Number       string  `json:"order"`
 	User         int     `json:"-"`
@@ -21,14 +28,7 @@ type Order struct {
 	Time         string  `json:"processed_at"`
 }
 
-type OrderResponse struct {
-	Number string  `json:"number"`
-	Status string  `json:"status"`
-	Bonus  float32 `json:"accrual,omitempty"`
-	Time   string  `json:"uploaded_at"`
-}
-
-type AccrualResponse struct {
+type Accrual struct {
 	User   int     `json:"-" db:"user_id"`
 	Number string  `json:"order"`
 	Status string  `json:"status"`

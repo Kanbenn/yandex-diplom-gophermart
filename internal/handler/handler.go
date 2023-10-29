@@ -51,7 +51,9 @@ func (h *Handler) LoginUser(w http.ResponseWriter, r *http.Request) {
 
 func (h *Handler) GetUserOrders(w http.ResponseWriter, r *http.Request) {
 	uid := r.Context().Value(models.CtxKeyUser).(int)
+	log.Println("h.GetUserOrders", uid)
 	orders, err := h.app.UserOrders(uid)
+	log.Println("h.GetUserOrders", orders, err)
 	if err != nil {
 		w.WriteHeader(statusFromResult(err))
 		return

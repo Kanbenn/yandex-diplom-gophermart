@@ -36,6 +36,10 @@ func isForeignKeyViolation(e error) bool {
 	return false
 }
 
+func (pg *Pg) isFinalStatus(status string) bool {
+	return status == pg.Cfg.OrderFinalStatus
+}
+
 func (pg *Pg) checkInsertOrderResults(res orderInsertResult) error {
 	if !res.SameUser {
 		log.Println("другой юзер уже загрузил этот номер заказа", res)
