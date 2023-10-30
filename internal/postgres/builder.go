@@ -24,15 +24,16 @@ const (
 	CREATE INDEX IF NOT EXISTS ulogin ON users(login);
 	
 	CREATE TABLE IF NOT EXISTS orders (
-		id 		    SERIAL PRIMARY KEY,
-		number      TEXT NOT NULL UNIQUE,
-		user_id     INTEGER REFERENCES users(id),
-		status      TEXT DEFAULT 'NEW',
-		bonus		DECIMAL(12,2) DEFAULT 0,
-		sum  		DECIMAL(12,2) DEFAULT 0,
-		time		TEXT,
-		created_at  TIMESTAMP without time zone DEFAULT NOW(),
-		updated_at  TIMESTAMP without time zone DEFAULT NOW()
+		id 		      SERIAL PRIMARY KEY,
+		number        TEXT NOT NULL UNIQUE,
+		user_id       INTEGER REFERENCES users(id),
+		status        TEXT DEFAULT 'NEW',
+		bonus		  DECIMAL(12,2) DEFAULT 0,
+		sum  		  DECIMAL(12,2) DEFAULT 0,
+		is_withdrawal BOOLEAN DEFAULT false,
+		time		  TEXT,
+		created_at    TIMESTAMP without time zone DEFAULT NOW(),
+		updated_at    TIMESTAMP without time zone DEFAULT NOW()
 	);
 	CREATE INDEX IF NOT EXISTS onumber ON orders(number);
 	CREATE INDEX IF NOT EXISTS ostatus ON orders(status);`

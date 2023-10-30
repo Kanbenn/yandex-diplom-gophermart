@@ -23,7 +23,6 @@ func (worker *Worker) LaunchWorkerAccrual(ctx context.Context) {
 			log.Println("worker: recieved ctx.Done signal, stopping the goroutine")
 			return
 		case <-ticker.C:
-			log.Println("worker: doing work...")
 			worker.doWork(ticker)
 		}
 	}

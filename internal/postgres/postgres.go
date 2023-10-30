@@ -42,7 +42,7 @@ func (pg *Pg) SelectUserBalance(uid int) (ub models.UserBalance, err error) {
 }
 
 func (pg *Pg) SelectUserWithdrawHistory(uid int) (orders []models.Order, err error) {
-	q := `SELECT number, sum, time FROM orders WHERE user_id = $1 AND sum > 0`
+	q := `SELECT number, sum, time FROM orders WHERE user_id = $1 AND is_withdrawal = true`
 	err = pg.Sqlx.Select(&orders, q, uid)
 	return orders, err
 }
@@ -70,10 +70,10 @@ func (pg *Pg) InsertOrderWithdrawal(o models.Order) error {
 	defer tx.Rollback()
 
 	qo := `
-	INSERT INTO orders (number, user_id, status, sum, time) 
-	VALUES(:number, :user, :status, :sum, :time)`
-	o.Time = pg.timeForNewOrders()
+	INSERT INTO orders (number, user_id, status, sum, is_withdrawal, time) 
+	VALUES(:number, :user, :status, :sum, :iswithdrawal, :time)`
 	o.Status = pg.statusForNewOrderWithBonus()
+	o.Time = pg.timeForNewOrders()
 	if _, err := tx.NamedExec(qo, o); err != nil {
 		return pg.checkInserOrderWithBonusErr(err)
 	}
