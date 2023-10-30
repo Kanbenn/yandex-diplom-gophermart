@@ -34,6 +34,9 @@ func (worker *Worker) doWork(ticker *time.Ticker) {
 		log.Println("worker: error at selecting orders to process", err)
 		return
 	}
+	if len(orders) < 1 {
+		return
+	}
 	for _, order := range orders {
 		result := worker.askAccrualForOrderUpdates(&order)
 		if result.statusCode == http.StatusOK {
