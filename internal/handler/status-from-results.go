@@ -34,9 +34,10 @@ func statusFromResult(err error) int {
 		return http.StatusPaymentRequired
 	case models.ErrNoContent:
 		return http.StatusNoContent
-	case models.ErrOrderWasPostedByThisUser, models.ErrOrderWasPostedByAnotherUser:
+	case models.ErrLoginNotUnique,
+		models.ErrOrderWasPostedByThisUser,
+		models.ErrOrderWasPostedByAnotherUser:
 		return http.StatusConflict
-		// return http.StatusUnprocessableEntity
 	case models.ErrUserUnknown:
 		return http.StatusUnauthorized
 	default:
