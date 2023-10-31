@@ -13,8 +13,7 @@ import (
 func (worker *Worker) LaunchWorkerAccrual(ctx context.Context) {
 	log.Println("launching accrual worker goroutine")
 
-	// ticker := time.NewTicker(1 * time.Second)
-	ticker := time.NewTicker(50 * time.Millisecond)
+	ticker := time.NewTicker(100 * time.Millisecond)
 	defer ticker.Stop()
 
 	for {
@@ -22,13 +21,14 @@ func (worker *Worker) LaunchWorkerAccrual(ctx context.Context) {
 		case <-ctx.Done():
 			log.Println("worker: recieved ctx.Done signal, stopping the goroutine")
 			return
-		case <-ticker.C:
-			worker.doWork(ticker)
+		default:
+			<-ticker.C
+			worker.doWork()
 		}
 	}
 }
 
-func (worker *Worker) doWork(ticker *time.Ticker) {
+func (worker *Worker) doWork() {
 	orders, err := worker.s.SelectOrdersForAccrual()
 	if err != nil {
 		log.Println("worker: error at selecting orders to process", err)
@@ -44,7 +44,7 @@ func (worker *Worker) doWork(ticker *time.Ticker) {
 		}
 		if result.statusCode == http.StatusTooManyRequests {
 			log.Println("worker: too many requests to Accrual, wait for", result.delay)
-			ticker.Reset(result.delay)
+			time.Sleep(result.delay)
 		}
 	}
 }
