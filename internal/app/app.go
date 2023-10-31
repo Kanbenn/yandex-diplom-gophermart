@@ -32,11 +32,12 @@ func (app *App) OrderNew(order models.Order) (err error) {
 
 	if order.IsWithdrawal {
 		err = app.s.InsertOrderWithdrawal(order)
-		log.Println("app.OrderNew with Bonus", order, err)
+		log.Println("app.OrderNewWithdrawal result:", order, err)
 		return err
 	}
-	log.Println("app.OrderNew for Accrual", order, err)
-	return app.s.InsertOrder(order)
+	err = app.s.InsertOrder(order)
+	log.Println("app.OrderNew result:", order, err)
+	return err
 }
 
 func (app *App) UserBalance(uid int) (ub models.UserBalance, err error) {
