@@ -25,7 +25,7 @@ type Order struct {
 	Status       string  `json:"-"`
 	IsWithdrawal bool    `json:"-"`
 	Sum          float32 `json:"sum" `
-	Time         string  `json:"processed_at"`
+	Time         string  `json:"processed_at,omitempty"`
 }
 
 type Accrual struct {

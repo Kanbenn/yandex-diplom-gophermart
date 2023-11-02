@@ -15,8 +15,17 @@ type Config struct {
 	FinishedOrderStatuses []string
 }
 
-func NewFromFlagsAndEnvs() Config {
+func New() Config {
 	c := Config{}
+
+	c.ProcessedAtTimeFormat = time.RFC3339
+	c.OrderFinalStatus = "PROCESSED"
+	c.FinishedOrderStatuses = []string{"PROCESSED", "INVALID"}
+	return c
+}
+
+func (c *Config) ParseFlagsAndEnvs() {
+
 	flag.StringVar(&c.Addr, "a", "localhost:8080", "address:port for Gophermart to listen on")
 	flag.StringVar(&c.PgConnStr, "d", "", "Postgres connection string for storage")
 	flag.StringVar(&c.AccrualLink, "r", "http://localhost:9090", "address:port for Accrual to listen on")
@@ -31,10 +40,4 @@ func NewFromFlagsAndEnvs() Config {
 	if val := os.Getenv("ACCRUAL_SYSTEM_ADDRESS"); val != "" {
 		c.AccrualLink = val
 	}
-
-	c.ProcessedAtTimeFormat = time.RFC3339
-	c.OrderFinalStatus = "PROCESSED"
-	c.FinishedOrderStatuses = []string{"PROCESSED", "INVALID"}
-
-	return c
 }

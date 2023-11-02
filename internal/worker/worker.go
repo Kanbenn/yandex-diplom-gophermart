@@ -13,7 +13,8 @@ import (
 func (worker *Worker) LaunchWorkerAccrual(ctx context.Context) {
 	log.Println("launching accrual worker goroutine")
 
-	ticker := time.NewTicker(100 * time.Millisecond)
+	// ticker := time.NewTicker(100 * time.Millisecond)
+	ticker := time.NewTicker(1 * time.Second)
 	defer ticker.Stop()
 
 	for {
@@ -50,8 +51,8 @@ func (worker *Worker) doWork() {
 }
 
 func (worker *Worker) askAccrualForOrderUpdates(order *models.Accrual) (res result) {
-	// ctx, cancel := context.WithTimeout(context.Background(), 50*time.Second)
-	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Millisecond)
+	// ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 900*time.Millisecond)
 	accrualPath := "/api/orders/" + order.Number
 	httpc := resty.New().SetBaseURL(worker.cfg.AccrualLink)
 	req := httpc.R().

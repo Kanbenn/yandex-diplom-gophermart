@@ -11,7 +11,8 @@ import (
 
 func (h *Handler) RegisterNewUser(w http.ResponseWriter, r *http.Request) {
 	var u models.User
-	if err := json.NewDecoder(r.Body).Decode(&u); err != nil {
+	d := json.NewDecoder(r.Body)
+	if err := d.Decode(&u); err != nil || len(u.Login) < 2 || len(u.Password) < 3 {
 		http.Error(w, "unreadable json data", http.StatusBadRequest)
 		return
 	}
@@ -65,6 +66,7 @@ func (h *Handler) GetUserBalance(w http.ResponseWriter, r *http.Request) {
 	uid := r.Context().Value(models.CtxKeyUser).(int)
 	orders, err := h.app.UserBalance(uid)
 	if err != nil {
+		log.Println("h.GetUserBalance unexpected error:", err)
 		w.WriteHeader(statusFromResult(err))
 		return
 	}

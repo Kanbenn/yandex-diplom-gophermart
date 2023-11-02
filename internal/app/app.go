@@ -60,11 +60,11 @@ func (app *App) UserOrders(uid int) (orders []models.UserOrder, err error) {
 func (app *App) UserWithdrawHistory(uid int) (orders []models.Order, err error) {
 	orders, err = app.s.SelectUserWithdrawHistory(uid)
 	if err != nil {
-		log.Println("app.UserWithdrawHistory err:", orders, err)
+		log.Println("app.UserWithdrawHistory unexpected error:", orders, err)
 		return orders, models.ErrUnxpectedError
 	}
 	if len(orders) < 1 {
-		log.Println("h.GetUserHistory err: нет ни одного списания", uid, orders, err)
+		log.Println("h.GetUserHistory нет ни одного списания", uid, orders, err)
 		return orders, models.ErrNoContent
 	}
 	return orders, nil

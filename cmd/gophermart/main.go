@@ -14,7 +14,8 @@ import (
 
 func main() {
 
-	cfg := config.NewFromFlagsAndEnvs()
+	cfg := config.New()
+	cfg.ParseFlagsAndEnvs()
 
 	pg := postgres.New(cfg)
 	defer pg.Close()
