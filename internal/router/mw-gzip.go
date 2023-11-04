@@ -18,6 +18,7 @@ func gzipMiddleware(next http.Handler) http.Handler {
 		// decompress the incoming request
 		isCompressed := strings.Contains(r.Header.Get("Content-Encoding"), "gzip")
 		if isCompressed {
+			log.Println("GzipMiddleware: входящий запрос сжат gzip - распаковываю")
 			zr, err := gzip.NewReader(r.Body)
 			if err != nil {
 				log.Println("GzipMiddleware error at gzip.NewReader():", err)
@@ -29,6 +30,7 @@ func gzipMiddleware(next http.Handler) http.Handler {
 
 		// compress the outgoing response
 		acceptsGzip := strings.Contains(r.Header.Get("Accept-Encoding"), "gzip")
+		log.Println("GzipMiddleware: сжимаю исходящий запрос через gzip")
 		if acceptsGzip {
 			w = &compressWriter{w}
 		}

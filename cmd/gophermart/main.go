@@ -4,6 +4,7 @@ import (
 	"context"
 	"os"
 	"os/signal"
+	"syscall"
 
 	"github.com/Kanbenn/gophermart/internal/app"
 	"github.com/Kanbenn/gophermart/internal/config"
@@ -22,7 +23,7 @@ func main() {
 
 	app := app.New(cfg, pg)
 
-	ctx, _ := signal.NotifyContext(context.Background(), os.Interrupt)
+	ctx, _ := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM, os.Interrupt)
 
 	wa := worker.New(cfg, pg)
 	go wa.LaunchWorkerAccrual(ctx)
